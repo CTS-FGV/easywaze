@@ -25,7 +25,6 @@ self.tables_postgis -- dict :: metadata of tables created
 import sqlalchemy as sa
 from glob import glob
 import json
-from dateutil import tz
 import datetime
 from sqlalchemy import (VARCHAR, Text, BigInteger, INTEGER, TIMESTAMP, JSON, 
                         BOOLEAN, Column, Float, ForeignKey, DateTime, select)
@@ -436,8 +435,6 @@ class Postgis(Json):
             list -- list of dict ready to insert
         """
         new = []
-        from_zone = tz.tzutc()
-        to_zone = tz.gettz(timezone)
         for raw in raws:
             new.append({
             "uuid":                           raw.get("id"), 
@@ -445,16 +442,12 @@ class Postgis(Json):
             "detection_date":                 raw.get("detectionDate"),
             "detection_utc_date":             datetime.datetime.
                                               strptime(raw.get('detectionDate'),
-                                                    '%a %b %d %H:%M:%S %z %Y').
-                                              replace(tzinfo=from_zone).
-                                              astimezone(to_zone),
+                                                    '%a %b %d %H:%M:%S %z %Y'),
             "update_date_millis":             raw.get("updateDateMillis"),
             "update_date":                    raw.get("updateDate"),
             "update_utc_date":                datetime.datetime.
                                               strptime(raw.get('updateDate'),
-                                                    '%a %b %d %H:%M:%S %z %Y').
-                                              replace(tzinfo=from_zone).
-                                              astimezone(to_zone), 
+                                                    '%a %b %d %H:%M:%S %z %Y'), 
             "street":                         raw.get("street"),
             "city":                           raw.get("city"),
             "country":                        raw.get("country"),
