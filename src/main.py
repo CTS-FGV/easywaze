@@ -75,7 +75,7 @@ def load_yaml():
     res = yaml.load(open('config.yaml', 'r'))
 
     for i, city in enumerate(res['cities']):
-        print(city['city_name'])
+
         if 'acotu=true&irmie=true' not in city['endpoint']:
             res['cities'][i]['endpoint'] = improve_url(city['endpoint'])
             yaml.dump(res, open('config.yaml', 'w'))
@@ -121,7 +121,7 @@ def insert_data(data, city, tables, engine):
         except KeyError:
             continue
            
-        print('[SUCESS] Data inserted!')
+        print('[SUCESS] {city} - {table} Data inserted!'.format(city=city['city_name'],table=table))
 
 
 def main():
