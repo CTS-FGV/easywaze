@@ -4,7 +4,6 @@ import yaml
 import requests
 import json
 import datetime
-from dateutil import tz
 import fire
 import urllib.parse as urlparse
 from urllib.parse import urlencode
