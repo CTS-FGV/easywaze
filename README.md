@@ -48,6 +48,9 @@ make build
 # Start all containers and prepare directories
 make prepare
 
+# Destroy all container and clean environment
+make destroy
+
 # Enter into shell mode inside the EasyWaze container
 make shell
 
