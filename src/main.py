@@ -75,14 +75,19 @@ def load_yaml():
     res = yaml.load(open('config.yaml', 'r'))
 
     for i, city in enumerate(res['cities']):
-
+        print(city['city_name'])
         if 'acotu=true&irmie=true' not in city['endpoint']:
             res['cities'][i]['endpoint'] = improve_url(city['endpoint'])
             yaml.dump(res, open('config.yaml', 'w'))
         
         if 'timezone' not in city.keys():
-            res['cities'][i]['timezone'] = get_timezone(city['endpoint'])
-            yaml.dump(res, open('config.yaml', 'w'))
+            
+            try:
+                res['cities'][i]['timezone'] = get_timezone(city['endpoint'])
+                yaml.dump(res, open('config.yaml', 'w'))
+            except KeyError:
+                pass
+
 
     return res['cities']
 
@@ -135,5 +140,4 @@ def main():
 
 
 if __name__ == '__main__':
-    print('ola')
     fire.Fire(main)

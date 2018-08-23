@@ -54,10 +54,17 @@ ___
 |   Force Export   | `--force-export` | Bollean  `True` or `False`  | Reload database and export | 
 
 
+### Adding new city
 
-Acesse `localhost:5000` com `root` e `root` e confira se os dados foram capturados
+The `src/new_city.py` adds a city to config file.
 
+`python new_city.py --city_name Campinas --country_name Brasil --waze_url ...`
 
+It also supports interactive mode:
+
+`python new_city.py --interactive`
+
+which asks for the necessary data.
 
 ## Developer mode
 
