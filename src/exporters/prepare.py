@@ -272,7 +272,8 @@ class Export(object):
             string -- filename
         """
         
-        timezone = timezone.replace('/', '-')
+        # timezone = timezone.replace('/', '-')
+        timezone = 'A-A'
 
         return '{table}--{start_time}--{timezone}--{idx}'.format(
                                             table=table,
