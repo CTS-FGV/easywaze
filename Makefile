@@ -7,10 +7,13 @@ APP_NAME=easywaze
 USER_NAME=kratos
 USER_HOME=/home/$(USER_NAME)
 APP=/app
-SOURCE_PATH=./src
+SOURCE_PATH=src/
 VOLUME_PATH=-v $(PWD)/$(SOURCE_PATH)/:/app/ \
 			-v $(APP_NAME)-venv:/home/kratos/.pyenv/versions
 
+ENVS=-e EW_CITY_NAME=Montivideo \
+	 -e EW_COUNTRY_NAME=Uruguai \
+	 -e EW_ENDPOINT='https://world-georss.waze.com/rtserver/web/TGeoRSS?acotu=true&format=JSON&irmie=true&types=traffic%2Calerts%2Cirregularities&tk=ccp_partner&ccp_partner_name=Fundacao+Getulio+Vargas&polygon=-56.324,-34.601;-56.45,-34.881;-55.934,-35.003;-55.39,-34.854;-56.324,-34.601'
 
 # Prepare the environment
 # ==============================
@@ -33,7 +36,9 @@ prepare:
 # Docker builds
 # ==============================
 build: basics
-	docker build -t $(NAME):$(TAG) --rm .
+	docker build -t $(NAME):$(TAG) --rm docker/base
+	docker build -t $(NAME):master --rm docker/master
+	docker build -t $(NAME):worker --rm docker/worker
 
 
 # Interactive commands
@@ -41,22 +46,25 @@ build: basics
 shell: basics
 	@docker run --rm -it \
 		$(VOLUME_PATH) \
+		$(ENVS) \
 		--entrypoint="" \
 		--user=$(USER_NAME) \
 		--network $(APP_NAME) \
-		--workdir /app \
 		--name $(APP_NAME)-shell-$$RANDOM \
+		--workdir /app \
 		$(NAME):$(TAG) $(SHELL)
 
 shell-root: basics
 	@echo -e "\e[91mMaking you a god...\e[0m"
 	@docker run --rm -it \
 		$(VOLUME_PATH) \
+		$(ENVS) \
 		--entrypoint="" \
-		--workdir /app \
 		--name $(APP_NAME)-shellroot-$$RANDOM \
+		--workdir /app \
 		--network $(APP_NAME) \
 		$(NAME):$(TAG) $(SHELL)
+
 
 # Start master and worker mode
 # ==============================
@@ -139,9 +147,8 @@ repair:
 	docker rm -f db $(docker container ls -af name=$(APP_NAME)) 2>/dev/null || true
 	make basics
 	make db
+	
 
-destroy:
-	docker rm -f $$(docker container ls -aqf name=$(APP_NAME)) 2>/dev/null || true
 
 
 # Custom commands
@@ -153,7 +160,7 @@ cmd-capture:
 		--user=$(USER_NAME) \
 		--network $(APP_NAME) \
 		--name $(APP_NAME)-shell-$$RANDOM \
-		$(NAME):$(TAG) /capture.sh uygviuyvbiuvbiugbiugbviuygviv
+		$(NAME):$(TAG) bin/capture.sh uygviuyvbiuvbiugbiugbviuygviv
 
 cmd-export:
 	@docker run --rm -it \
@@ -162,4 +169,4 @@ cmd-export:
 		--user=$(USER_NAME) \
 		--network $(APP_NAME) \
 		--name $(APP_NAME)-shell-$$RANDOM \
-		$(NAME):$(TAG) /export.sh
+		$(NAME):$(TAG) bin/export.sh

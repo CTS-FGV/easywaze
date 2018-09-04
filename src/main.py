@@ -3,8 +3,10 @@ import sqlalchemy as sa
 import yaml
 import requests
 import json
+import os
 import datetime
 import fire
+from pathlib import Path
 import urllib.parse as urlparse
 from urllib.parse import urlencode
 
@@ -70,26 +72,17 @@ def improve_url(url):
 
     return urlparse.urlunparse(url_parts) + '&polygon=' + polygon
 
-def load_yaml():
+def get_config():
 
-    res = yaml.load(open('config.yaml', 'r'))
+    config = dict(
+            city_name = os.environ['EW_CITY_NAME'],
+            country_name = os.environ['EW_COUNTRY_NAME'],
+            endpoint = os.environ['EW_ENDPOINT'])
 
-    for i, city in enumerate(res['cities']):
+    if 'acotu=true&irmie=true' not in config['endpoint']:
+        config['endpoint'] = improve_url(config['endpoint'])
 
-        if 'acotu=true&irmie=true' not in city['endpoint']:
-            res['cities'][i]['endpoint'] = improve_url(city['endpoint'])
-            yaml.dump(res, open('config.yaml', 'w'))
-        
-        if 'timezone' not in city.keys():
-            
-            try:
-                res['cities'][i]['timezone'] = get_timezone(city['endpoint'])
-                yaml.dump(res, open('config.yaml', 'w'))
-            except KeyError:
-                pass
-
-
-    return res['cities']
+    return config
 
 
 def request_url(url):
@@ -113,7 +106,7 @@ def insert_data(data, city, tables, engine):
                             strptime(data['startTime'],'%Y-%m-%d %H:%M:%S:%f')),
                 end_time=(datetime.datetime.
                             strptime(data['endTime'],'%Y-%m-%d %H:%M:%S:%f')),
-                timezone=city['timezone'],
+                timezone=None,
                 raw_json=data[table])
             conn = engine.connect()
             conn.execute(ins)
@@ -121,22 +114,24 @@ def insert_data(data, city, tables, engine):
         except KeyError:
             continue
            
-        print('[SUCESS] {city} - {table} Data inserted!'.format(city=city['city_name'],table=table))
+        print('[SUCESS] {city} - {table} Data inserted!'.format(
+                                    city=city,table=table))
 
 
 def main():
     
+    # Load Config files
+    config = get_config()
+
     # Create engine
     engine = create_mysql_engine()
     tables = create_tables(engine)
-
-    cities = load_yaml()
-    for city in cities:
-        data = request_url(city['endpoint'])
-        try:
-            insert_data(data, city, tables, engine)
-        except:
-            print('[FAIL] MySQL Insertion Failed!') 
+    
+    data = request_url(config['endpoint'])
+    try:
+        insert_data(data, config['city_name'], tables, engine)
+    except:
+        print('[FAIL] MySQL Insertion Failed!') 
 
 
 if __name__ == '__main__':
